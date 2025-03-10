@@ -50,6 +50,7 @@ struct WebView: UIViewRepresentable, WebViewHandlerDelegate {
         
         let webView = WKWebView(frame: CGRect.zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
         webView.scrollView.isScrollEnabled = true
        return webView
@@ -69,7 +70,7 @@ struct WebView: UIViewRepresentable, WebViewHandlerDelegate {
         }
     }
     
-    class Coordinator : NSObject, WKNavigationDelegate {
+    class Coordinator : NSObject, WKNavigationDelegate, WKUIDelegate {
         var parent: WebView
         var delegate: WebViewHandlerDelegate?
         var valueSubscriber: AnyCancellable? = nil
@@ -168,6 +169,15 @@ struct WebView: UIViewRepresentable, WebViewHandlerDelegate {
             }
             // This allows the navigation
             decisionHandler(.allow)
+        }
+        
+        func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+            if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPBasic {
+                let credential = URLCredential(user: "ekitan", password: "Ekimae20", persistence: .forSession)
+                completionHandler(.useCredential, credential)
+            } else {
+                completionHandler(.performDefaultHandling, nil)
+            }
         }
     }
 }
